@@ -1,4 +1,6 @@
-{
-    "username": "yourUsername",
-    "password": "yourPassword",
-}
+[
+    {
+        "username": "yourUsername",
+        "password": "yourPassword"
+    }
+]

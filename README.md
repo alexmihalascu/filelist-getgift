@@ -39,13 +39,31 @@ This project automates the process of logging into Filelist.io and navigating to
     Modify the `config.json` file in the root of the project with your Filelist.io credentials:
 
     ```json
+    [
     {
         "username": "yourUsername",
         "password": "yourPassword"
     }
+    ]
     ```
 
     Replace `yourUsername` and `yourPassword` with your actual Filelist.io credentials. Ensure this file is kept secure and not shared publicly.
+
+    If you have multiple accounts, modify the `config.json` file in the root of the project after example:
+
+    ```json
+    [
+    {
+        "username": "firstUserUsername",
+        "password": "firstUserPassword"
+    },
+    {
+        "username": "secondUserUsername",
+        "password": "secondUserPassword"
+    }
+    // Add more users as needed
+    ]
+    ```
 
 ## Usage
 
