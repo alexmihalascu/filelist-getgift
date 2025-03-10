@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Filelist Gift Automation</title>
+
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #5b21b6;
+        --primary-hover: #4c1d95;
+        --primary-light: #ede9fe;
+        --secondary-color: #0891b2;
+        --secondary-hover: #0e7490;
+        --secondary-light: #cffafe;
+        --success-color: #10b981;
+        --success-hover: #059669;
+        --danger-color: #ef4444;
+        --danger-hover: #dc2626;
+        --warning-color: #f59e0b;
+        --warning-hover: #d97706;
+        --dark-color: #0f172a;
+        --dark-secondary: #1e293b;
+        --light-color: #f8fafc;
+        --border-radius: 12px;
+        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #f8fafc;
+        color: #334155;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .content {
+        flex: 1;
+        padding: 2rem 0;
+      }
+
+      .navbar {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        padding: 1rem 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white !important;
+        letter-spacing: -0.025em;
+      }
+
+      .navbar-brand i {
+        background-color: rgba(255, 255, 255, 0.2);
+        padding: 10px;
+        border-radius: 10px;
+        margin-right: 12px;
+      }
+
+      .card {
+        border: none;
+        box-shadow: var(--card-shadow);
+        border-radius: var(--border-radius);
+        margin-bottom: 24px;
+        transition: var(--transition);
+        overflow: hidden;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+      }
+
+      .card-header {
+        background-color: white;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 20px 24px;
+        font-weight: 600;
+        font-size: 1.15rem;
+        color: var(--dark-color);
+        display: flex;
+        align-items: center;
+      }
+
+      .card-body {
+        padding: 24px;
+      }
+
+      .btn {
+        padding: 12px 22px;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: var(--transition);
+        border: none;
+        letter-spacing: -0.01em;
+      }
+
+      .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.875rem;
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .btn-primary:hover,
+      .btn-primary:focus {
+        background-color: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(91, 33, 182, 0.25);
+      }
+
+      .btn-success {
+        background-color: var(--success-color);
+      }
+
+      .btn-success:hover,
+      .btn-success:focus {
+        background-color: var(--success-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(16, 185, 129, 0.25);
+      }
+
+      .btn-danger {
+        background-color: var(--danger-color);
+      }
+
+      .btn-danger:hover,
+      .btn-danger:focus {
+        background-color: var(--danger-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(239, 68, 68, 0.25);
+      }
+
+      .btn-warning {
+        background-color: var(--warning-color);
+        color: white;
+      }
+
+      .btn-warning:hover,
+      .btn-warning:focus {
+        background-color: var(--warning-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(245, 158, 11, 0.25);
+        color: white;
+      }
+
+      .btn i {
+        margin-right: 8px;
+      }
+
+      .form-label {
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: #475569;
+      }
+
+      .form-control {
+        padding: 14px 16px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        font-size: 1rem;
+        transition: var(--transition);
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(91, 33, 182, 0.15);
+      }
+
+      .input-group-text {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+        border: 1px solid #e2e8f0;
+        border-radius: 10px 0 0 10px;
+        padding: 0 16px;
+      }
+
+      .input-group .form-control {
+        border-radius: 0 10px 10px 0;
+      }
+
+      .user-list {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+      }
+
+      .user-item {
+        background-color: #f8fafc;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid #e2e8f0;
+      }
+
+      .user-item:hover {
+        background-color: var(--primary-light);
+        border-color: #d8b4fe;
+      }
+
+      .user-badge {
+        display: inline-flex;
+        align-items: center;
+        background-color: white;
+        padding: 8px 14px;
+        border-radius: 50px;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      .user-badge i {
+        margin-right: 8px;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+      }
+
+      .output-section {
+        font-family: 'Fira Code', monospace;
+        background-color: var(--dark-color);
+        color: #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        max-height: 350px;
+        overflow-y: auto;
+        line-height: 1.6;
+        font-size: 0.9rem;
+      }
+
+      .output-section .text-info {
+        color: #38bdf8 !important;
+      }
+
+      .output-section .text-success {
+        color: #4ade80 !important;
+      }
+
+      .output-section .text-danger {
+        color: #fb7185 !important;
+      }
+
+      .status {
+        padding: 14px;
+        margin: 12px 0 20px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 500;
+        transition: var(--transition);
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+      }
+
+      .status.active {
+        opacity: 1;
+        max-height: 100px;
+      }
+
+      .status-success {
+        background-color: rgba(16, 185, 129, 0.15);
+        color: var(--success-color);
+        border-left: 4px solid var(--success-color);
+      }
+
+      .status-error {
+        background-color: rgba(239, 68, 68, 0.15);
+        color: var(--danger-color);
+        border-left: 4px solid var(--danger-color);
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 12px;
+      }
+
+      .action-buttons .btn {
+        flex: 1;
+      }
+
+      .heading-icon {
+        font-size: 1.3rem;
+        margin-right: 12px;
+        color: var(--primary-color);
+        background-color: var(--primary-light);
+        padding: 10px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .footer {
+        background-color: var(--dark-color);
+        color: #cbd5e1;
+        padding: 2rem 0 1.5rem;
+        margin-top: 2rem;
+      }
+
+      .footer h5 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+
+      .footer a {
+        color: #f8fafc;
+        text-decoration: none;
+        transition: var(--transition);
+      }
+
+      .footer a:hover {
+        color: var(--primary-color);
+      }
+
+      .btn-outline-light {
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: var(--transition);
+      }
+
+      .btn-outline-light:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+        color: #64748b;
+      }
+
+      .empty-state i {
+        font-size: 2.5rem;
+        color: #94a3b8;
+        margin-bottom: 1rem;
+      }
+
+      .empty-state p {
+        margin-bottom: 0;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card {
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      /* Tooltip */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: var(--dark-secondary);
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -60px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <i class="bi bi-gift-fill"></i>Filelist Gift Automation
+        </a>
+      </div>
+    </nav>
+
+    <div class="container content">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-header">
+              <div class="heading-icon">
+                <i class="bi bi-person-plus"></i>
+              </div>
+              Adaugă utilizator Filelist
+            </div>
+            <div class="card-body">
+              <div class="mb-4">
+                <label for="username" class="form-label">Nume utilizator:</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person"></i></span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="username"
+                    placeholder="Introduceți numele de utilizator"
+                  />
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label for="password" class="form-label">Parolă:</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-key"></i></span>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    placeholder="Introduceți parola"
+                  />
+                </div>
+              </div>
+
+              <button id="addUser" class="btn btn-primary w-100">
+                <i class="bi bi-plus-circle"></i>Adaugă utilizator
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-header">
+              <div class="heading-icon">
+                <i class="bi bi-people"></i>
+              </div>
+              Utilizatori configurați
+            </div>
+            <div class="card-body">
+              <div id="userList" class="user-list">
+                <div id="users"></div>
+              </div>
+              <div id="status" class="status"></div>
+              <div class="action-buttons">
+                <button id="saveConfig" class="btn btn-success">
+                  <i class="bi bi-save"></i>Salvează
+                </button>
+                <button id="testAuth" class="btn btn-warning">
+                  <i class="bi bi-shield-check"></i>Testează
+                </button>
+                <button id="runScript" class="btn btn-primary">
+                  <i class="bi bi-play-fill"></i>Rulează
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-header">
+          <div class="heading-icon">
+            <i class="bi bi-terminal"></i>
+          </div>
+          Output
+        </div>
+        <div class="card-body">
+          <div id="output" class="output-section">
+            <span class="text-info">$ </span>Așteptare comandă...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <h5 class="text-white">Filelist Gift Automation</h5>
+            <p class="mb-0">Un instrument modern pentru automatizarea proceselor pe Filelist.</p>
+          </div>
+          <div class="col-md-6 text-md-end d-flex flex-column justify-content-between">
+            <p>
+              © 2025 <a href="https://mhlsq.ro" target="_blank">MHLSQ Software</a>. Toate drepturile
+              rezervate.
+            </p>
+            <p class="mt-2">
+              <a href="https://mhlsq.ro" class="btn btn-sm btn-outline-light" target="_blank">
+                <i class="bi bi-arrow-right me-1"></i> Vizitează mhlsq.ro
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      let users = [];
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        const configResult = await window.electronAPI.loadConfig();
+        if (configResult.success && configResult.data) {
+          users = configResult.data;
+          updateUserList();
+        }
+
+        window.electronAPI.onScriptOutput(data => {
+          const outputElement = document.getElementById('output');
+          outputElement.innerHTML += `<span class="text-success">${data}</span>\n`;
+          outputElement.scrollTop = outputElement.scrollHeight;
+        });
+
+        window.electronAPI.onScriptError(data => {
+          const outputElement = document.getElementById('output');
+          outputElement.innerHTML += `<span class="text-danger">EROARE: ${data}</span>\n`;
+          outputElement.scrollTop = outputElement.scrollHeight;
+        });
+      });
+
+      document.getElementById('addUser').addEventListener('click', function () {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (username && password) {
+          users.push({ username, password });
+          updateUserList();
+
+          document.getElementById('username').value = '';
+          document.getElementById('password').value = '';
+
+          showStatus('Utilizator adăugat cu succes!', 'success');
+        } else {
+          showStatus('Te rugăm să introduci atât numele de utilizator cât și parola!', 'error');
+        }
+      });
+
+      function updateUserList() {
+        const userListElement = document.getElementById('users');
+        userListElement.innerHTML = '';
+
+        if (users.length === 0) {
+          userListElement.innerHTML = `
+            <div class="empty-state">
+              <i class="bi bi-person-dash"></i>
+              <p>Nu există utilizatori configurați.</p>
+              <small>Adaugă utilizatori pentru a începe.</small>
+            </div>`;
+          return;
+        }
+
+        users.forEach((user, index) => {
+          const userItem = document.createElement('div');
+          userItem.className = 'user-item';
+          userItem.setAttribute('data-user-index', index);
+          userItem.innerHTML = `
+            <div class="user-badge">
+              <i class="bi bi-person-circle"></i>
+              ${user.username}
+            </div>
+            <button class="btn btn-sm btn-danger delete-btn" data-index="${index}">
+              <i class="bi bi-trash"></i> Șterge
+            </button>
+          `;
+          userListElement.appendChild(userItem);
+
+          // Add animation for new items
+          setTimeout(() => {
+            userItem.style.opacity = '1';
+          }, 50 * index);
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(button => {
+          button.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const index = parseInt(this.getAttribute('data-index'));
+
+            // Animation for removing items
+            const userItem = this.closest('.user-item');
+            userItem.style.opacity = '0';
+            userItem.style.transform = 'translateX(20px)';
+
+            setTimeout(() => {
+              users.splice(index, 1);
+              updateUserList();
+              showStatus('Utilizator șters!', 'success');
+            }, 300);
+          });
+        });
+      }
+
+      document.getElementById('testAuth').addEventListener('click', async function () {
+        if (users.length === 0) {
+          showStatus('Nu există utilizatori configurați!', 'error');
+          return;
+        }
+
+        document.getElementById('output').innerHTML =
+          '<span class="text-info">$ </span>Se testează autentificarea utilizatorilor...\n';
+
+        let allSuccessful = true;
+
+        for (const user of users) {
+          const outputElement = document.getElementById('output');
+          outputElement.innerHTML += `<span class="text-info">$ Testare autentificare pentru: ${user.username}</span>\n`;
+          outputElement.scrollTop = outputElement.scrollHeight;
+
+          const result = await window.electronAPI.testAuthentication(user);
+
+          if (result.success) {
+            outputElement.innerHTML += `<span class="text-success">✓ ${result.message}</span>\n`;
+          } else {
+            outputElement.innerHTML += `<span class="text-danger">✗ ${result.message}</span>\n`;
+            allSuccessful = false;
+          }
+
+          outputElement.scrollTop = outputElement.scrollHeight;
+        }
+
+        if (allSuccessful) {
+          showStatus('Toate autentificările au reușit!', 'success');
+        } else {
+          showStatus('Unele autentificări au eșuat!', 'error');
+        }
+      });
+
+      document.getElementById('saveConfig').addEventListener('click', async function () {
+        if (users.length === 0) {
+          showStatus('Nu există utilizatori de salvat!', 'error');
+          return;
+        }
+
+        const result = await window.electronAPI.saveConfig(users);
+        if (result.success) {
+          showStatus(result.message, 'success');
+        } else {
+          showStatus(result.message, 'error');
+        }
+      });
+
+      document.getElementById('runScript').addEventListener('click', async function () {
+        if (users.length === 0) {
+          showStatus('Nu există utilizatori configurați!', 'error');
+          return;
+        }
+
+        document.getElementById('output').innerHTML =
+          '<span class="text-info">$ </span>Se inițializează scriptul...\n';
+        showStatus('Rulare script...', 'success');
+
+        const result = await window.electronAPI.runScript();
+
+        if (result.success) {
+          showStatus('Script finalizat cu succes!', 'success');
+        } else {
+          showStatus('Script finalizat cu erori!', 'error');
+        }
+      });
+
+      function showStatus(message, type) {
+        const statusElement = document.getElementById('status');
+        statusElement.textContent = message;
+        statusElement.className = `status status-${type} active`;
+
+        setTimeout(() => {
+          statusElement.classList.remove('active');
+
+          setTimeout(() => {
+            statusElement.textContent = '';
+            statusElement.className = 'status';
+          }, 300);
+        }, 4000);
+      }
+    </script>
+  </body>
+</html>

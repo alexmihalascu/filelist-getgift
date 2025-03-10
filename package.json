@@ -1,5 +1,55 @@
 {
+  "name": "filelist-getgift",
+  "version": "1.0.0",
+  "description": "Filelist Gift Automation with GUI",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexmihalascu/filelist-getgift.git"
+  },
+  "keywords": [
+    "filelist",
+    "automation",
+    "puppeteer"
+  ],
+  "author": "",
+  "license": "MIT",
   "dependencies": {
-    "puppeteer": "^21.6.1"
+    "puppeteer": "^21.0.0"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.filelist.getgift",
+    "productName": "Filelist Gift Automation",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "app-icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "app-icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "app-icon.png"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "getGift.js",
+      "node_modules/**/*",
+      "package.json"
+    ]
   }
 }
