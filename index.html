@@ -1,381 +1,483 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ro">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Filelist Gift Automation</title>
+    <title>Filelist Gift</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
-    />
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
 
     <style>
       :root {
-        --primary-color: #5b21b6;
-        --primary-hover: #4c1d95;
-        --primary-light: #ede9fe;
-        --secondary-color: #0891b2;
-        --secondary-hover: #0e7490;
-        --secondary-light: #cffafe;
-        --success-color: #10b981;
-        --success-hover: #059669;
-        --danger-color: #ef4444;
-        --danger-hover: #dc2626;
-        --warning-color: #f59e0b;
-        --warning-hover: #d97706;
-        --dark-color: #0f172a;
-        --dark-secondary: #1e293b;
-        --light-color: #f8fafc;
-        --border-radius: 12px;
-        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        /* one tinted-dark base, one desaturated accent */
+        --bg: #0e1116;
+        --bg-soft: #151a21;
+        --surface: #181e26;
+        --surface-2: #1e242d;
+        --border: #262d37;
+        --border-soft: #20262f;
+        --text: #e6e9ee;
+        --text-dim: #9aa4b2;
+        --text-faint: #5e6976;
+
+        --accent: #34d0c4; /* desaturated teal */
+        --accent-dim: #2aa89e;
+        --accent-soft: rgba(52, 208, 196, 0.12);
+
+        --ok: #4ade80;
+        --warn: #f0b454;
+        --err: #f3766f;
+
+        --radius: 14px;
+        --radius-sm: 10px;
+        --ease: cubic-bezier(0.32, 0.72, 0, 1);
+        --shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.8);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
       }
 
       body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        background-color: #f8fafc;
-        color: #334155;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
+        margin: 0;
+        font-family:
+          'Geist',
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100dvh;
+        -webkit-font-smoothing: antialiased;
+        font-feature-settings: 'ss01';
       }
 
-      .content {
-        flex: 1;
-        padding: 2rem 0;
+      /* ambient depth: a single radial glow + grain, no AI gradient */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        background:
+          radial-gradient(900px 500px at 82% -8%, rgba(52, 208, 196, 0.08), transparent 60%),
+          radial-gradient(700px 600px at -10% 110%, rgba(52, 208, 196, 0.05), transparent 55%);
+      }
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0.025;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       }
 
-      .navbar {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-        padding: 1rem 0;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      .shell {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 28px;
       }
 
-      .navbar-brand {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: white !important;
-        letter-spacing: -0.025em;
+      /* ---------- top bar ---------- */
+      header.topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        backdrop-filter: blur(14px);
+        background: rgba(14, 17, 22, 0.72);
+        border-bottom: 1px solid var(--border-soft);
       }
-
-      .navbar-brand i {
-        background-color: rgba(255, 255, 255, 0.2);
-        padding: 10px;
-        border-radius: 10px;
-        margin-right: 12px;
-      }
-
-      .card {
-        border: none;
-        box-shadow: var(--card-shadow);
-        border-radius: var(--border-radius);
-        margin-bottom: 24px;
-        transition: var(--transition);
-        overflow: hidden;
-      }
-
-      .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
-      }
-
-      .card-header {
-        background-color: white;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 20px 24px;
-        font-weight: 600;
-        font-size: 1.15rem;
-        color: var(--dark-color);
-        display: flex;
-        align-items: center;
-      }
-
-      .card-body {
-        padding: 24px;
-      }
-
-      .btn {
-        padding: 12px 22px;
-        border-radius: 10px;
-        font-weight: 500;
-        transition: var(--transition);
-        border: none;
-        letter-spacing: -0.01em;
-      }
-
-      .btn-sm {
-        padding: 6px 12px;
-        font-size: 0.875rem;
-      }
-
-      .btn-primary {
-        background-color: var(--primary-color);
-        color: white;
-      }
-
-      .btn-primary:hover,
-      .btn-primary:focus {
-        background-color: var(--primary-hover);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(91, 33, 182, 0.25);
-      }
-
-      .btn-success {
-        background-color: var(--success-color);
-      }
-
-      .btn-success:hover,
-      .btn-success:focus {
-        background-color: var(--success-hover);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(16, 185, 129, 0.25);
-      }
-
-      .btn-danger {
-        background-color: var(--danger-color);
-      }
-
-      .btn-danger:hover,
-      .btn-danger:focus {
-        background-color: var(--danger-hover);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(239, 68, 68, 0.25);
-      }
-
-      .btn-warning {
-        background-color: var(--warning-color);
-        color: white;
-      }
-
-      .btn-warning:hover,
-      .btn-warning:focus {
-        background-color: var(--warning-hover);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(245, 158, 11, 0.25);
-        color: white;
-      }
-
-      .btn i {
-        margin-right: 8px;
-      }
-
-      .form-label {
-        font-weight: 500;
-        margin-bottom: 8px;
-        color: #475569;
-      }
-
-      .form-control {
-        padding: 14px 16px;
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-        font-size: 1rem;
-        transition: var(--transition);
-      }
-
-      .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px rgba(91, 33, 182, 0.15);
-      }
-
-      .input-group-text {
-        background-color: var(--primary-light);
-        color: var(--primary-color);
-        border: 1px solid #e2e8f0;
-        border-radius: 10px 0 0 10px;
-        padding: 0 16px;
-      }
-
-      .input-group .form-control {
-        border-radius: 0 10px 10px 0;
-      }
-
-      .user-list {
-        max-height: 300px;
-        overflow-y: auto;
-        margin-bottom: 16px;
-      }
-
-      .user-item {
-        background-color: #f8fafc;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 12px;
-        transition: var(--transition);
+      .topbar-inner {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border: 1px solid #e2e8f0;
+        height: 66px;
       }
-
-      .user-item:hover {
-        background-color: var(--primary-light);
-        border-color: #d8b4fe;
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        font-size: 1.05rem;
       }
-
-      .user-badge {
+      .brand .mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        background: var(--accent-soft);
+        border: 1px solid rgba(52, 208, 196, 0.25);
+        color: var(--accent);
+      }
+      .brand .mark svg {
+        width: 18px;
+        height: 18px;
+      }
+      .brand small {
+        display: block;
+        font-weight: 400;
+        font-size: 0.72rem;
+        color: var(--text-faint);
+        letter-spacing: 0.02em;
+        margin-top: 1px;
+      }
+      .pill {
         display: inline-flex;
         align-items: center;
-        background-color: white;
-        padding: 8px 14px;
-        border-radius: 50px;
-        font-weight: 500;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        gap: 7px;
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        padding: 6px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        font-variant-numeric: tabular-nums;
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--text-faint);
+        transition: background 0.3s var(--ease);
+      }
+      .pill.live .dot {
+        background: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
       }
 
-      .user-badge i {
-        margin-right: 8px;
-        color: var(--primary-color);
-        font-size: 1.1rem;
+      /* ---------- layout ---------- */
+      main {
+        padding: 46px 0 80px;
       }
-
-      .output-section {
-        font-family: 'Fira Code', monospace;
-        background-color: var(--dark-color);
-        color: #e2e8f0;
-        border-radius: 12px;
-        padding: 20px;
-        max-height: 350px;
-        overflow-y: auto;
+      .lede {
+        max-width: 56ch;
+        margin-bottom: 38px;
+      }
+      .lede h1 {
+        font-size: clamp(1.7rem, 4vw, 2.3rem);
+        font-weight: 600;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+        margin: 0 0 12px;
+        text-wrap: balance;
+      }
+      .lede p {
+        margin: 0;
+        color: var(--text-dim);
+        font-size: 1rem;
         line-height: 1.6;
-        font-size: 0.9rem;
+        text-wrap: pretty;
       }
 
-      .output-section .text-info {
-        color: #38bdf8 !important;
+      .grid {
+        display: grid;
+        grid-template-columns: 1.05fr 1.25fr;
+        gap: 22px;
+        align-items: start;
+      }
+      @media (max-width: 880px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
       }
 
-      .output-section .text-success {
-        color: #4ade80 !important;
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
       }
-
-      .output-section .text-danger {
-        color: #fb7185 !important;
-      }
-
-      .status {
-        padding: 14px;
-        margin: 12px 0 20px;
-        border-radius: 12px;
-        text-align: center;
-        font-weight: 500;
-        transition: var(--transition);
-        opacity: 0;
-        max-height: 0;
-        overflow: hidden;
-      }
-
-      .status.active {
-        opacity: 1;
-        max-height: 100px;
-      }
-
-      .status-success {
-        background-color: rgba(16, 185, 129, 0.15);
-        color: var(--success-color);
-        border-left: 4px solid var(--success-color);
-      }
-
-      .status-error {
-        background-color: rgba(239, 68, 68, 0.15);
-        color: var(--danger-color);
-        border-left: 4px solid var(--danger-color);
-      }
-
-      .action-buttons {
-        display: flex;
-        gap: 12px;
-      }
-
-      .action-buttons .btn {
-        flex: 1;
-      }
-
-      .heading-icon {
-        font-size: 1.3rem;
-        margin-right: 12px;
-        color: var(--primary-color);
-        background-color: var(--primary-light);
-        padding: 10px;
-        border-radius: 10px;
+      .panel-head {
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 11px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--border-soft);
       }
-
-      .footer {
-        background-color: var(--dark-color);
-        color: #cbd5e1;
-        padding: 2rem 0 1.5rem;
-        margin-top: 2rem;
+      .panel-head .ico {
+        color: var(--accent);
+        display: grid;
+        place-items: center;
       }
-
-      .footer h5 {
+      .panel-head .ico svg {
+        width: 17px;
+        height: 17px;
+      }
+      .panel-head h2 {
+        font-size: 0.96rem;
         font-weight: 600;
-        margin-bottom: 1rem;
+        letter-spacing: -0.01em;
+        margin: 0;
+      }
+      .panel-head .count {
+        margin-left: auto;
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        font-variant-numeric: tabular-nums;
+      }
+      .panel-body {
+        padding: 22px;
       }
 
-      .footer a {
-        color: #f8fafc;
-        text-decoration: none;
-        transition: var(--transition);
+      /* ---------- form ---------- */
+      .field {
+        margin-bottom: 16px;
+      }
+      .field label {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        margin-bottom: 7px;
+        letter-spacing: 0.005em;
+      }
+      .input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0 13px;
+        transition:
+          border-color 0.2s var(--ease),
+          box-shadow 0.2s var(--ease);
+      }
+      .input svg {
+        width: 16px;
+        height: 16px;
+        color: var(--text-faint);
+        flex-shrink: 0;
+      }
+      .input:focus-within {
+        border-color: var(--accent-dim);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+      .input input {
+        flex: 1;
+        background: none;
+        border: none;
+        outline: none;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.94rem;
+        padding: 13px 0;
+      }
+      .input input::placeholder {
+        color: var(--text-faint);
       }
 
-      .footer a:hover {
-        color: var(--primary-color);
+      /* ---------- buttons ---------- */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: -0.005em;
+        padding: 12px 18px;
+        border-radius: var(--radius-sm);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition:
+          transform 0.12s var(--ease),
+          background 0.2s var(--ease),
+          border-color 0.2s var(--ease),
+          opacity 0.2s var(--ease);
+        user-select: none;
+      }
+      .btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      .btn:active {
+        transform: scale(0.975);
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .btn[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-accent {
+        background: var(--accent);
+        color: #06201d;
+        font-weight: 600;
+      }
+      .btn-accent:hover:not([disabled]) {
+        background: #46ddd0;
+      }
+      .btn-ghost {
+        background: var(--surface-2);
+        color: var(--text);
+        border-color: var(--border);
+      }
+      .btn-ghost:hover:not([disabled]) {
+        border-color: var(--text-faint);
+        background: #232a34;
+      }
+      .btn-wide {
+        width: 100%;
       }
 
-      .btn-outline-light {
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        transition: var(--transition);
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1.2fr;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      @media (max-width: 460px) {
+        .toolbar {
+          grid-template-columns: 1fr;
+        }
       }
 
-      .btn-outline-light:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.5);
-      }
-
-      .empty-state {
+      /* ---------- user list ---------- */
+      .users {
         display: flex;
         flex-direction: column;
+        gap: 9px;
+        max-height: 268px;
+        overflow-y: auto;
+        margin: -2px -4px 0;
+        padding: 2px 4px;
+      }
+      .user-row {
+        display: flex;
         align-items: center;
-        justify-content: center;
-        padding: 2rem;
+        gap: 12px;
+        padding: 12px 14px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-sm);
+        transition:
+          border-color 0.2s var(--ease),
+          transform 0.25s var(--ease),
+          opacity 0.25s var(--ease);
+      }
+      .user-row:hover {
+        border-color: var(--border);
+      }
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 600;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+      }
+      .user-row .name {
+        font-size: 0.92rem;
+        font-weight: 500;
+      }
+      .user-row .sub {
+        font-size: 0.74rem;
+        color: var(--text-faint);
+        margin-top: 1px;
+      }
+      .user-row .spacer {
+        margin-left: auto;
+      }
+      .icon-btn {
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        background: none;
+        color: var(--text-faint);
+        cursor: pointer;
+        transition:
+          color 0.2s var(--ease),
+          background 0.2s var(--ease);
+      }
+      .icon-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+      .icon-btn:hover {
+        color: var(--err);
+        background: rgba(243, 118, 111, 0.1);
+      }
+      .icon-btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+
+      .empty {
         text-align: center;
-        color: #64748b;
+        padding: 34px 16px;
+        color: var(--text-faint);
+      }
+      .empty svg {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 12px;
+        opacity: 0.7;
+      }
+      .empty p {
+        margin: 0 0 4px;
+        color: var(--text-dim);
+        font-size: 0.9rem;
+      }
+      .empty small {
+        font-size: 0.78rem;
       }
 
-      .empty-state i {
-        font-size: 2.5rem;
-        color: #94a3b8;
-        margin-bottom: 1rem;
+      /* ---------- status ---------- */
+      .status {
+        display: none;
+        align-items: center;
+        gap: 9px;
+        margin-top: 16px;
+        padding: 11px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 0.86rem;
+        border: 1px solid var(--border);
       }
-
-      .empty-state p {
-        margin-bottom: 0;
+      .status.show {
+        display: flex;
+        animation: slideIn 0.3s var(--ease);
       }
-
-      /* Animations */
-      @keyframes fadeIn {
+      .status svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+      }
+      .status.ok {
+        color: var(--ok);
+        background: rgba(74, 222, 128, 0.08);
+        border-color: rgba(74, 222, 128, 0.22);
+      }
+      .status.err {
+        color: var(--err);
+        background: rgba(243, 118, 111, 0.08);
+        border-color: rgba(243, 118, 111, 0.22);
+      }
+      @keyframes slideIn {
         from {
           opacity: 0;
-          transform: translateY(10px);
+          transform: translateY(-4px);
         }
         to {
           opacity: 1;
@@ -383,357 +485,540 @@
         }
       }
 
-      .card {
-        animation: fadeIn 0.5s ease-out;
+      /* ---------- console ---------- */
+      .console {
+        margin-top: 22px;
+      }
+      .console .panel-head .led {
+        margin-left: auto;
+        display: flex;
+        gap: 6px;
+      }
+      .console .panel-head .led span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--border);
+      }
+      .console-body {
+        font-family: 'Geist Mono', ui-monospace, monospace;
+        font-size: 0.84rem;
+        line-height: 1.65;
+        color: var(--text-dim);
+        background: #0b0e13;
+        border-radius: 0 0 var(--radius) var(--radius);
+        padding: 18px 22px;
+        max-height: 320px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .console-body .ln {
+        display: block;
+      }
+      .console-body .prompt {
+        color: var(--accent);
+      }
+      .console-body .ok {
+        color: var(--ok);
+      }
+      .console-body .err {
+        color: var(--err);
+      }
+      .console-body .muted {
+        color: var(--text-faint);
       }
 
-      /* Scrollbar styling */
+      /* ---------- scrollbar ---------- */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 9px;
+        height: 9px;
       }
-
       ::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 10px;
+        background: transparent;
       }
-
       ::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 10px;
+        background: var(--border);
+        border-radius: 8px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
       }
-
       ::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 0, 0, 0.3);
+        background: var(--text-faint);
+        background-clip: padding-box;
       }
 
-      /* Tooltip */
-      .tooltip {
-        position: relative;
-        display: inline-block;
+      footer {
+        border-top: 1px solid var(--border-soft);
+        color: var(--text-faint);
+        font-size: 0.82rem;
+      }
+      footer .shell {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 22px;
+        padding-bottom: 22px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      footer a {
+        color: var(--text-dim);
+        text-decoration: none;
+        transition: color 0.2s var(--ease);
+      }
+      footer a:hover {
+        color: var(--accent);
       }
 
-      .tooltip .tooltiptext {
-        visibility: hidden;
-        width: 120px;
-        background-color: var(--dark-secondary);
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 5px;
-        position: absolute;
-        z-index: 1;
-        bottom: 125%;
-        left: 50%;
-        margin-left: -60px;
-        opacity: 0;
-        transition: opacity 0.3s;
+      .spin {
+        animation: spin 0.7s linear infinite;
       }
-
-      .tooltip:hover .tooltiptext {
-        visibility: visible;
-        opacity: 1;
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
     </style>
   </head>
 
   <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-      <div class="container">
-        <a class="navbar-brand" href="#">
-          <i class="bi bi-gift-fill"></i>Filelist Gift Automation
-        </a>
+    <header class="topbar">
+      <div class="shell topbar-inner">
+        <div class="brand">
+          <span class="mark" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="8" width="18" height="4" rx="1" />
+              <path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+              <path
+                d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8M16.5 8a2.5 2.5 0 0 0 0-5C13 3 12 8 12 8"
+              />
+            </svg>
+          </span>
+          <span>
+            Filelist Gift
+            <small>colectare automată a cadoului zilnic</small>
+          </span>
+        </div>
+        <div id="livePill" class="pill">
+          <span class="dot"></span>
+          <span id="liveLabel">inactiv</span>
+        </div>
       </div>
-    </nav>
+    </header>
 
-    <div class="container content">
-      <div class="row">
-        <div class="col-lg-6">
-          <div class="card h-100">
-            <div class="card-header">
-              <div class="heading-icon">
-                <i class="bi bi-person-plus"></i>
+    <main class="shell">
+      <div class="lede">
+        <h1>Conturile tale, cadoul luat singur.</h1>
+        <p>
+          Adaugă conturile Filelist o singură dată, verifică-le și lasă aplicația să se logheze și
+          să ridice cadoul. Credențialele rămân local, pe acest calculator.
+        </p>
+      </div>
+
+      <div class="grid">
+        <!-- add account -->
+        <section class="panel" aria-labelledby="addTitle">
+          <div class="panel-head">
+            <span class="ico" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M19 8v6M22 11h-6" />
+              </svg>
+            </span>
+            <h2 id="addTitle">Adaugă un cont</h2>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label for="username">Utilizator</label>
+              <div class="input">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <input
+                  type="text"
+                  id="username"
+                  placeholder="numele contului"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
               </div>
-              Adaugă utilizator Filelist
             </div>
-            <div class="card-body">
-              <div class="mb-4">
-                <label for="username" class="form-label">Nume utilizator:</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-person"></i></span>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="username"
-                    placeholder="Introduceți numele de utilizator"
-                  />
-                </div>
-              </div>
 
-              <div class="mb-4">
-                <label for="password" class="form-label">Parolă:</label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-key"></i></span>
-                  <input
-                    type="password"
-                    class="form-control"
-                    id="password"
-                    placeholder="Introduceți parola"
-                  />
-                </div>
+            <div class="field">
+              <label for="password">Parolă</label>
+              <div class="input">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                <input
+                  type="password"
+                  id="password"
+                  placeholder="parola contului"
+                  autocomplete="off"
+                />
               </div>
+            </div>
 
-              <button id="addUser" class="btn btn-primary w-100">
-                <i class="bi bi-plus-circle"></i>Adaugă utilizator
+            <button id="addUser" class="btn btn-accent btn-wide">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Adaugă cont
+            </button>
+          </div>
+        </section>
+
+        <!-- accounts + actions -->
+        <section class="panel" aria-labelledby="listTitle">
+          <div class="panel-head">
+            <span class="ico" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </span>
+            <h2 id="listTitle">Conturi salvate</h2>
+            <span class="count" id="userCount">0 conturi</span>
+          </div>
+          <div class="panel-body">
+            <div id="users" class="users" role="list"></div>
+
+            <div id="status" class="status" role="status" aria-live="polite"></div>
+
+            <div class="toolbar">
+              <button id="saveConfig" class="btn btn-ghost">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <path d="M17 21v-8H7v8M7 3v5h8" />
+                </svg>
+                Salvează
+              </button>
+              <button id="testAuth" class="btn btn-ghost">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                Verifică
+              </button>
+              <button id="runScript" class="btn btn-accent">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polygon points="6 4 20 12 6 20 6 4" />
+                </svg>
+                Ia cadoul
               </button>
             </div>
           </div>
-        </div>
-
-        <div class="col-lg-6">
-          <div class="card h-100">
-            <div class="card-header">
-              <div class="heading-icon">
-                <i class="bi bi-people"></i>
-              </div>
-              Utilizatori configurați
-            </div>
-            <div class="card-body">
-              <div id="userList" class="user-list">
-                <div id="users"></div>
-              </div>
-              <div id="status" class="status"></div>
-              <div class="action-buttons">
-                <button id="saveConfig" class="btn btn-success">
-                  <i class="bi bi-save"></i>Salvează
-                </button>
-                <button id="testAuth" class="btn btn-warning">
-                  <i class="bi bi-shield-check"></i>Testează
-                </button>
-                <button id="runScript" class="btn btn-primary">
-                  <i class="bi bi-play-fill"></i>Rulează
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
 
-      <div class="card mt-4">
-        <div class="card-header">
-          <div class="heading-icon">
-            <i class="bi bi-terminal"></i>
-          </div>
-          Output
+      <!-- console -->
+      <section class="panel console" aria-labelledby="consoleTitle">
+        <div class="panel-head">
+          <span class="ico" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="4 17 10 11 4 5" />
+              <line x1="12" y1="19" x2="20" y2="19" />
+            </svg>
+          </span>
+          <h2 id="consoleTitle">Activitate</h2>
+          <span class="led" aria-hidden="true"><span></span><span></span><span></span></span>
         </div>
-        <div class="card-body">
-          <div id="output" class="output-section">
-            <span class="text-info">$ </span>Așteptare comandă...
-          </div>
+        <div id="output" class="console-body">
+          <span class="ln"
+            ><span class="prompt">›</span> <span class="muted">în așteptare…</span></span
+          >
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
 
-    <footer class="footer">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-6">
-            <h5 class="text-white">Filelist Gift Automation</h5>
-            <p class="mb-0">Un instrument modern pentru automatizarea proceselor pe Filelist.</p>
-          </div>
-          <div class="col-md-6 text-md-end d-flex flex-column justify-content-between">
-            <p>
-              © 2025 <a href="https://mhlsq.ro" target="_blank">MHLSQ Software</a>. Toate drepturile
-              rezervate.
-            </p>
-            <p class="mt-2">
-              <a href="https://mhlsq.ro" class="btn btn-sm btn-outline-light" target="_blank">
-                <i class="bi bi-arrow-right me-1"></i> Vizitează mhlsq.ro
-              </a>
-            </p>
-          </div>
-        </div>
+    <footer>
+      <div class="shell">
+        <span>© 2025 MHLSQ Software — rulează 100% local</span>
+        <a href="https://mhlsq.ro" target="_blank" rel="noopener">mhlsq.ro ↗</a>
       </div>
     </footer>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <script>
       let users = [];
 
-      document.addEventListener('DOMContentLoaded', async () => {
-        const configResult = await window.electronAPI.loadConfig();
-        if (configResult.success && configResult.data) {
-          users = configResult.data;
-          updateUserList();
-        }
+      const el = id => document.getElementById(id);
+      const out = el('output');
 
-        window.electronAPI.onScriptOutput(data => {
-          const outputElement = document.getElementById('output');
-          outputElement.innerHTML += `<span class="text-success">${data}</span>\n`;
-          outputElement.scrollTop = outputElement.scrollHeight;
+      const ICONS = {
+        ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg>',
+        err: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      };
+
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&<>"']/g,
+          c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+        );
+      }
+
+      function log(text, kind = '') {
+        const line = document.createElement('span');
+        line.className = 'ln';
+        const cls = kind ? ` ${kind}` : '';
+        line.innerHTML = `<span class="prompt">›</span> <span class="${cls.trim()}">${escapeHtml(text)}</span>`;
+        out.appendChild(line);
+        out.scrollTop = out.scrollHeight;
+      }
+
+      function clearLog(first) {
+        out.innerHTML = '';
+        if (first) log(first);
+      }
+
+      let statusTimer;
+      function showStatus(message, type) {
+        const s = el('status');
+        s.className = `status show ${type === 'success' ? 'ok' : 'err'}`;
+        s.innerHTML = `${type === 'success' ? ICONS.ok : ICONS.err}<span>${escapeHtml(message)}</span>`;
+        clearTimeout(statusTimer);
+        statusTimer = setTimeout(() => s.classList.remove('show'), 3800);
+      }
+
+      function setLive(on, label) {
+        el('livePill').classList.toggle('live', on);
+        el('liveLabel').textContent = label;
+      }
+
+      function setBusy(busy) {
+        ['addUser', 'saveConfig', 'testAuth', 'runScript'].forEach(id => {
+          el(id).disabled = busy;
         });
-
-        window.electronAPI.onScriptError(data => {
-          const outputElement = document.getElementById('output');
-          outputElement.innerHTML += `<span class="text-danger">EROARE: ${data}</span>\n`;
-          outputElement.scrollTop = outputElement.scrollHeight;
-        });
-      });
-
-      document.getElementById('addUser').addEventListener('click', function () {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
-
-        if (username && password) {
-          users.push({ username, password });
-          updateUserList();
-
-          document.getElementById('username').value = '';
-          document.getElementById('password').value = '';
-
-          showStatus('Utilizator adăugat cu succes!', 'success');
-        } else {
-          showStatus('Te rugăm să introduci atât numele de utilizator cât și parola!', 'error');
-        }
-      });
+      }
 
       function updateUserList() {
-        const userListElement = document.getElementById('users');
-        userListElement.innerHTML = '';
+        const list = el('users');
+        el('userCount').textContent = `${users.length} ${users.length === 1 ? 'cont' : 'conturi'}`;
+        list.innerHTML = '';
 
         if (users.length === 0) {
-          userListElement.innerHTML = `
-            <div class="empty-state">
-              <i class="bi bi-person-dash"></i>
-              <p>Nu există utilizatori configurați.</p>
-              <small>Adaugă utilizatori pentru a începe.</small>
+          list.innerHTML = `
+            <div class="empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/>
+              </svg>
+              <p>Niciun cont încă</p>
+              <small>Adaugă un cont în stânga pentru a începe.</small>
             </div>`;
           return;
         }
 
         users.forEach((user, index) => {
-          const userItem = document.createElement('div');
-          userItem.className = 'user-item';
-          userItem.setAttribute('data-user-index', index);
-          userItem.innerHTML = `
-            <div class="user-badge">
-              <i class="bi bi-person-circle"></i>
-              ${user.username}
-            </div>
-            <button class="btn btn-sm btn-danger delete-btn" data-index="${index}">
-              <i class="bi bi-trash"></i> Șterge
-            </button>
-          `;
-          userListElement.appendChild(userItem);
-
-          // Add animation for new items
-          setTimeout(() => {
-            userItem.style.opacity = '1';
-          }, 50 * index);
+          const row = document.createElement('div');
+          row.className = 'user-row';
+          row.setAttribute('role', 'listitem');
+          row.innerHTML = `
+            <span class="avatar">${escapeHtml(user.username.charAt(0).toUpperCase() || '?')}</span>
+            <span>
+              <span class="name">${escapeHtml(user.username)}</span>
+              <span class="sub">parolă salvată</span>
+            </span>
+            <span class="spacer"></span>
+            <button class="icon-btn" data-index="${index}" title="Șterge contul" aria-label="Șterge ${escapeHtml(user.username)}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </button>`;
+          list.appendChild(row);
         });
 
-        document.querySelectorAll('.delete-btn').forEach(button => {
-          button.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const index = parseInt(this.getAttribute('data-index'));
-
-            // Animation for removing items
-            const userItem = this.closest('.user-item');
-            userItem.style.opacity = '0';
-            userItem.style.transform = 'translateX(20px)';
-
+        list.querySelectorAll('.icon-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const i = parseInt(btn.getAttribute('data-index'), 10);
+            const row = btn.closest('.user-row');
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(14px)';
             setTimeout(() => {
-              users.splice(index, 1);
+              users.splice(i, 1);
               updateUserList();
-              showStatus('Utilizator șters!', 'success');
-            }, 300);
+              showStatus('Cont șters', 'success');
+            }, 220);
           });
         });
       }
 
-      document.getElementById('testAuth').addEventListener('click', async function () {
-        if (users.length === 0) {
-          showStatus('Nu există utilizatori configurați!', 'error');
-          return;
+      document.addEventListener('DOMContentLoaded', async () => {
+        const res = await window.electronAPI.loadConfig();
+        if (res.success && res.data) {
+          users = res.data;
         }
+        updateUserList();
 
-        document.getElementById('output').innerHTML =
-          '<span class="text-info">$ </span>Se testează autentificarea utilizatorilor...\n';
+        window.electronAPI.onScriptOutput(data => {
+          const lc = data.toLowerCase();
+          const kind = /reușit|succes|ready|gift/.test(lc)
+            ? 'ok'
+            : /eșuat|error|eroare|timeout/.test(lc)
+              ? 'err'
+              : 'muted';
+          log(data, kind);
+        });
 
-        let allSuccessful = true;
-
-        for (const user of users) {
-          const outputElement = document.getElementById('output');
-          outputElement.innerHTML += `<span class="text-info">$ Testare autentificare pentru: ${user.username}</span>\n`;
-          outputElement.scrollTop = outputElement.scrollHeight;
-
-          const result = await window.electronAPI.testAuthentication(user);
-
-          if (result.success) {
-            outputElement.innerHTML += `<span class="text-success">✓ ${result.message}</span>\n`;
-          } else {
-            outputElement.innerHTML += `<span class="text-danger">✗ ${result.message}</span>\n`;
-            allSuccessful = false;
-          }
-
-          outputElement.scrollTop = outputElement.scrollHeight;
-        }
-
-        if (allSuccessful) {
-          showStatus('Toate autentificările au reușit!', 'success');
-        } else {
-          showStatus('Unele autentificări au eșuat!', 'error');
-        }
+        window.electronAPI.onScriptError(data => log(data, 'err'));
       });
 
-      document.getElementById('saveConfig').addEventListener('click', async function () {
-        if (users.length === 0) {
-          showStatus('Nu există utilizatori de salvat!', 'error');
+      el('addUser').addEventListener('click', () => {
+        const username = el('username').value.trim();
+        const password = el('password').value.trim();
+        if (!username || !password) {
+          showStatus('Completează utilizator și parolă', 'error');
           return;
         }
+        if (users.some(u => u.username === username)) {
+          showStatus('Contul există deja în listă', 'error');
+          return;
+        }
+        users.push({ username, password });
+        updateUserList();
+        el('username').value = '';
+        el('password').value = '';
+        el('username').focus();
+        showStatus('Cont adăugat', 'success');
+      });
 
+      // Enter în câmpul parolă = adaugă
+      el('password').addEventListener('keydown', e => {
+        if (e.key === 'Enter') el('addUser').click();
+      });
+
+      el('saveConfig').addEventListener('click', async () => {
+        if (users.length === 0) {
+          showStatus('Nu ai conturi de salvat', 'error');
+          return;
+        }
         const result = await window.electronAPI.saveConfig(users);
-        if (result.success) {
-          showStatus(result.message, 'success');
-        } else {
-          showStatus(result.message, 'error');
-        }
+        showStatus(
+          result.message || (result.success ? 'Salvat' : 'Salvare eșuată'),
+          result.success ? 'success' : 'error',
+        );
       });
 
-      document.getElementById('runScript').addEventListener('click', async function () {
+      el('testAuth').addEventListener('click', async () => {
         if (users.length === 0) {
-          showStatus('Nu există utilizatori configurați!', 'error');
+          showStatus('Adaugă cel puțin un cont', 'error');
           return;
         }
+        setBusy(true);
+        setLive(true, 'verificare');
+        clearLog();
+        log('Verific autentificarea…', 'muted');
 
-        document.getElementById('output').innerHTML =
-          '<span class="text-info">$ </span>Se inițializează scriptul...\n';
-        showStatus('Rulare script...', 'success');
+        let allOk = true;
+        for (const user of users) {
+          log(`cont: ${user.username}`, 'muted');
+          const result = await window.electronAPI.testAuthentication(user);
+          if (result.success) {
+            log(`✓ ${result.message}`, 'ok');
+          } else {
+            log(`✗ ${result.message}`, 'err');
+            allOk = false;
+          }
+        }
+        setBusy(false);
+        setLive(false, 'inactiv');
+        showStatus(
+          allOk ? 'Toate conturile sunt valide' : 'Unele conturi au eșuat',
+          allOk ? 'success' : 'error',
+        );
+      });
+
+      el('runScript').addEventListener('click', async () => {
+        if (users.length === 0) {
+          showStatus('Adaugă cel puțin un cont', 'error');
+          return;
+        }
+        setBusy(true);
+        setLive(true, 'rulează');
+        clearLog();
+        log('Pornesc colectarea cadourilor…', 'muted');
 
         const result = await window.electronAPI.runScript();
-
-        if (result.success) {
-          showStatus('Script finalizat cu succes!', 'success');
-        } else {
-          showStatus('Script finalizat cu erori!', 'error');
-        }
+        setBusy(false);
+        setLive(false, 'inactiv');
+        showStatus(
+          result.success ? 'Gata, cadourile au fost procesate' : 'Procesare terminată cu erori',
+          result.success ? 'success' : 'error',
+        );
       });
-
-      function showStatus(message, type) {
-        const statusElement = document.getElementById('status');
-        statusElement.textContent = message;
-        statusElement.className = `status status-${type} active`;
-
-        setTimeout(() => {
-          statusElement.classList.remove('active');
-
-          setTimeout(() => {
-            statusElement.textContent = '';
-            statusElement.className = 'status';
-          }, 300);
-        }, 4000);
-      }
     </script>
   </body>
 </html>
