@@ -1,0 +1,53 @@
+name: Build installers
+
+# Build .dmg (macOS), .exe (Windows) and .AppImage (Linux) on their native
+# runners. Triggered manually, or automatically when a version tag is pushed.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            build: npm run build:mac
+            artifact: 'dist/*.dmg'
+          - os: windows-latest
+            build: npm run build:win
+            artifact: 'dist/*.exe'
+          - os: ubuntu-latest
+            build: npm run build:linux
+            artifact: 'dist/*.AppImage'
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Skip the postinstall Chromium download in CI: the app fetches Chromium
+      # at first run, so it is not needed inside the installer.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build installer
+        run: ${{ matrix.build }}
+        env:
+          # Avoid code-signing prompts on macOS CI (unsigned build).
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.os }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
