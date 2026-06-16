@@ -61,6 +61,7 @@
       "preload.js",
       "index.html",
       "src/**/*",
+      "build/icon.png",
       "package.json",
       "!**/*.{md,map,ts}",
       "!**/{test,tests,__tests__,example,examples,.github,.bin}/**"

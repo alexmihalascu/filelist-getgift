@@ -12,10 +12,12 @@ let mainWindow = null;
 
 function createWindow() {
   // Pick an icon that actually exists for the current platform.
-  const iconCandidates = ['app-icon.png', 'app-icon.ico', 'icon.png', 'icon.ico'];
-  const iconPath = iconCandidates
-    .map(name => path.join(__dirname, name))
-    .find(p => fs.existsSync(p));
+  const iconCandidates = [
+    path.join(__dirname, 'build', 'icon.png'),
+    path.join(__dirname, 'build', 'icon.ico'),
+    path.join(__dirname, 'build', 'icon.icns'),
+  ];
+  const iconPath = iconCandidates.find(p => fs.existsSync(p));
 
   mainWindow = new BrowserWindow({
     width: 1000,
