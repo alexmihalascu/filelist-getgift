@@ -6,10 +6,10 @@
   "scripts": {
     "start": "electron .",
     "postinstall": "node -e \"require('child_process').execSync('npx puppeteer browsers install chrome', {stdio:'inherit'})\"",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux",
+    "build": "electron-builder --publish never",
+    "build:win": "electron-builder --win --publish never",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:linux": "electron-builder --linux --publish never",
     "gift": "node src/getGift.js",
     "test:auth": "node src/testAuth.js",
     "lint": "eslint .",
@@ -46,17 +46,14 @@
       "output": "dist"
     },
     "win": {
-      "target": "nsis",
-      "icon": "app-icon.ico"
+      "target": "nsis"
     },
     "mac": {
       "target": "dmg",
-      "icon": "app-icon.icns",
       "category": "public.app-category.utilities"
     },
     "linux": {
       "target": "AppImage",
-      "icon": "app-icon.png",
       "category": "Utility"
     },
     "files": [
