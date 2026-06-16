@@ -1,168 +1,175 @@
+'use strict';
+
 const puppeteer = require('puppeteer');
 const fs = require('fs');
-const path = require('path');
+const {
+  sleep,
+  loadUsers,
+  getLaunchOptions,
+  ensureBrowser,
+  USER_AGENT,
+  GIFT_LOG_PATH,
+} = require('./utils');
 
-// Load config file
-const configPath = path.join(__dirname, './config.json');
-const users = require(configPath);
+const MAX_RETRIES = 3;
 
-(async () => {
+/**
+ * Claim the daily gift for every configured user.
+ *
+ * Works both as an importable function (called in-process by the Electron main
+ * process) and as a CLI script. All progress is reported through `logger` so
+ * the GUI does not have to parse stdout.
+ *
+ * @param {object} [options]
+ * @param {(line: string) => void} [options.logger] - receives progress lines
+ * @param {string} [options.configPath] - override the config file location
+ * @returns {Promise<{ processed: number, failed: number }>}
+ */
+async function runGift({ logger = console.log, configPath } = {}) {
+  const log = line => logger(String(line));
+
+  const users = loadUsers(configPath);
+  await ensureBrowser(log); // download Chromium on first run if needed
+  let failed = 0;
+
   for (const user of users) {
     let browser;
     try {
-      console.log(`Processing user: ${user.username}...`);
+      log(`Processing user: ${user.username}...`);
 
-      // Launch with more options for stability
-      browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-          '--disable-web-security',
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--disable-gpu',
-        ],
-        timeout: 30000,
-      });
-
-      const page = await browser.newPage();
-
-      // Set a realistic user agent
-      await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      browser = await puppeteer.launch(
+        getLaunchOptions({
+          extraArgs: ['--disable-web-security', '--disable-accelerated-2d-canvas'],
+        }),
       );
 
-      // Add timeout and retry logic for navigation
-      const maxRetries = 3;
+      const page = await browser.newPage();
+      await page.setUserAgent(USER_AGENT);
+
+      // --- Login (with retries) ---
       let retries = 0;
       let loginSuccess = false;
 
-      while (retries < maxRetries && !loginSuccess) {
+      while (retries < MAX_RETRIES && !loginSuccess) {
         try {
-          // Navigate to login page with longer timeout
           await page.goto('https://filelist.io/login.php', {
             waitUntil: 'networkidle2',
             timeout: 30000,
           });
 
-          // Check if login form exists
           const usernameSelector = '#username';
           await page.waitForSelector(usernameSelector, { timeout: 10000 });
 
-          // Fill and submit login form
           await page.type(usernameSelector, user.username);
           await page.type('#password', user.password);
 
-          // Wait a bit before clicking to avoid being detected as a bot
-          await page.waitForTimeout(1000 + Math.random() * 2000);
+          // Random wait so the submit looks less bot-like.
+          await sleep(1000 + Math.random() * 2000);
 
           await Promise.all([
             page.click('.btn'),
             page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
           ]);
 
-          // Check for login failure
           if (page.url().includes('takelogin.php')) {
             const loginFailedMessage = await page.evaluate(() => {
               const errorDiv = document.querySelector(
-                'div[style*="font-size: 14px;color: #fff;font-weight:bold;"]'
+                'div[style*="font-size: 14px;color: #fff;font-weight:bold;"]',
               );
               return errorDiv ? errorDiv.innerText : 'Unknown login error';
             });
-
             throw new Error(
-              `Login failed for user: ${user.username}. Message: ${loginFailedMessage}`
+              `Login failed for user: ${user.username}. Message: ${loginFailedMessage}`,
             );
           }
 
           loginSuccess = true;
-          console.log(`Successfully logged in as ${user.username}`);
+          log(`Successfully logged in as ${user.username}`);
         } catch (error) {
           retries++;
-          console.warn(`Attempt ${retries}/${maxRetries} failed: ${error.message}`);
-
-          if (retries >= maxRetries) {
+          log(`Attempt ${retries}/${MAX_RETRIES} failed: ${error.message}`);
+          if (retries >= MAX_RETRIES) {
             throw new Error(`Max retries reached for user ${user.username}: ${error.message}`);
           }
-
-          // Wait before retrying
-          await page.waitForTimeout(5000);
+          await sleep(5000);
         }
       }
 
-      // Navigate to gift page with retry logic
+      // --- Gift page (with retries) ---
       retries = 0;
       let giftSuccess = false;
 
-      while (retries < maxRetries && !giftSuccess) {
+      while (retries < MAX_RETRIES && !giftSuccess) {
         try {
-          console.log(`Navigating to gift page for ${user.username}...`);
-
-          // Add random wait to make it look more human
-          await page.waitForTimeout(2000 + Math.random() * 3000);
+          log(`Navigating to gift page for ${user.username}...`);
+          await sleep(2000 + Math.random() * 3000);
 
           await page.goto('https://filelist.io/gift.php', {
             waitUntil: 'networkidle2',
             timeout: 30000,
           });
 
-          // Check for content on the gift page
           await page.waitForSelector('.cblock-innercontent', { timeout: 10000 });
-
           const message = await page.$eval('.cblock-innercontent', element =>
-            element.textContent.trim()
+            element.textContent.trim(),
           );
 
-          console.log(`Gift for user: ${user.username}`);
-          console.log(message);
+          log(`Gift for user: ${user.username}`);
+          log(message);
 
-          // Log the results to a file
           const logData = `${new Date().toISOString()} - User: ${user.username} - ${message}\n`;
-          fs.appendFileSync('gift_log.txt', logData);
+          fs.appendFileSync(GIFT_LOG_PATH, logData);
 
           giftSuccess = true;
         } catch (error) {
           retries++;
-          console.warn(`Gift page attempt ${retries}/${maxRetries} failed: ${error.message}`);
-
-          if (retries >= maxRetries) {
+          log(`Gift page attempt ${retries}/${MAX_RETRIES} failed: ${error.message}`);
+          if (retries >= MAX_RETRIES) {
             throw new Error(`Max retries reached for gift page: ${error.message}`);
           }
-
-          // Wait before retrying
-          await page.waitForTimeout(5000);
+          await sleep(5000);
         }
       }
 
-      // Logout properly
+      // --- Logout (best-effort) ---
       try {
-        console.log(`Logging out user: ${user.username}...`);
-        await page.waitForTimeout(1000);
+        log(`Logging out user: ${user.username}...`);
+        await sleep(1000);
         const logoutLink = await page.$('a[href^="/logout.php?id="]');
-
         if (logoutLink) {
           await Promise.all([
             page.click('a[href^="/logout.php?id="]'),
             page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 10000 }),
           ]);
-          console.log(`Successfully logged out ${user.username}`);
+          log(`Successfully logged out ${user.username}`);
         } else {
-          console.warn(`Logout link not found for ${user.username}`);
+          log(`Logout link not found for ${user.username}`);
         }
       } catch (logoutError) {
-        console.warn(`Error during logout: ${logoutError.message}`);
+        log(`Error during logout: ${logoutError.message}`);
       }
     } catch (error) {
-      console.error(`Error processing user ${user.username}:`, error);
-      // Continue with next user instead of breaking
-      continue;
+      failed++;
+      log(`Error processing user ${user.username}: ${error.message}`);
+      // Continue with the next user instead of breaking the whole run.
     } finally {
       if (browser) {
         await browser.close();
-        console.log(`Browser closed for ${user.username}`);
+        log(`Browser closed for ${user.username}`);
       }
     }
   }
-  console.log('All users processed.');
-})();
+
+  log('All users processed.');
+  return { processed: users.length, failed };
+}
+
+module.exports = { runGift };
+
+// CLI entry point.
+if (require.main === module) {
+  runGift().catch(error => {
+    console.error(`Fatal error: ${error.message}`);
+    process.exitCode = 1;
+  });
+}

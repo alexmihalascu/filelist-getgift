@@ -1,4 +1,7 @@
 @echo off
+setlocal enabledelayedexpansion
+cd /d "%~dp0"
+
 echo ===================================================
 echo Filelist Gift Automation - Setup Script for Windows
 echo ===================================================
@@ -22,8 +25,8 @@ for /f "tokens=1,2,3 delims=." %%a in ('node -v') do (
 
 set NODE_MAJOR=%NODE_MAJOR:~1%
 
-if %NODE_MAJOR% LSS 14 (
-    echo Your Node.js version is too old. Please upgrade to Node.js 14 or newer.
+if %NODE_MAJOR% LSS 18 (
+    echo Your Node.js version is too old. Please upgrade to Node.js 18 or newer.
     echo Current version: %NODE_MAJOR%.%NODE_MINOR%.%NODE_PATCH%
     echo Press any key to exit...
     pause >nul
@@ -33,11 +36,11 @@ if %NODE_MAJOR% LSS 14 (
 echo [✓] Node.js detected (version %NODE_MAJOR%.%NODE_MINOR%.%NODE_PATCH%)
 echo.
 
-:: Create default config if not exists
+:: Create default config from the example template if not exists
 if not exist config.json (
-    echo Creating default config.json...
-    echo [] > config.json
-    echo [✓] Created default config.json
+    echo Creating config.json from config.example.json...
+    copy /Y config.example.json config.json >nul
+    echo [✓] Created config.json - edit it with your Filelist credentials
 ) else (
     echo [✓] Found existing config.json
 )

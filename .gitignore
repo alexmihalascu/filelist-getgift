@@ -1,1 +1,14 @@
 node_modules/
+.claude
+.DS_Store
+
+# Local credentials & generated runtime files — never commit
+config.json
+temp_user_test.json
+gift_log.txt
+login_test_results.txt
+filelist-getgift-user-test.json
+dist/
+
+# Puppeteer's downloaded Chromium (bundled at build time, not committed)
+.puppeteer-cache/

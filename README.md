@@ -4,8 +4,11 @@ This project automates the process of logging into **Filelist.io** and navigatin
 
 ## 📋 Requirements
 
-- **Node.js** and **npm** (Node Package Manager)
-- **Puppeteer**
+- **Node.js 18+** and **npm** (only needed to run from source or build installers)
+- Works on **Windows**, **macOS**, and **Linux**
+
+> Packaged installers bundle everything (including Chromium) — end users need
+> nothing pre-installed.
 
 ## 🚀 Setup
 
@@ -44,7 +47,11 @@ This project automates the process of logging into **Filelist.io** and navigatin
    ```
 
 5. **Configuration**
-   - Modify the `config.json` file in the root of the project with your **Filelist.io** credentials:
+   - Copy the example config and fill in your credentials:
+     ```bash
+     cp config.example.json config.json
+     ```
+   - Edit `config.json` with your **Filelist.io** credentials:
      ```json
      [
        {
@@ -53,7 +60,7 @@ This project automates the process of logging into **Filelist.io** and navigatin
        }
      ]
      ```
-   - Replace `yourUsername` and `yourPassword` with your actual **Filelist.io** credentials. ⚠️ Ensure this file is kept secure and not shared publicly.
+   - Replace `yourUsername` and `yourPassword` with your actual **Filelist.io** credentials. ⚠️ `config.json` is git-ignored so your credentials are never committed — keep it secure and do not share it.
    - **Multiple Accounts**: If you have multiple accounts, you can add them to the `config.json` file as follows:
      ```json
      [
@@ -83,6 +90,49 @@ Alternatively, you can use:
 - On macOS/Linux: `./start.sh`
 
 The script will log into **Filelist.io**, navigate to the gift page, and extract the specified information.
+
+### Running without the GUI
+
+```bash
+npm run gift        # claim gifts for all configured accounts
+npm run test:auth   # test credentials for all configured accounts
+```
+
+## 🗂️ Project Structure
+
+```
+filelist-getgift/
+├── main.js              # Electron main process (runs automation in-process)
+├── preload.js           # Electron context bridge
+├── index.html           # GUI
+├── config.example.json  # Credentials template (copy to config.json)
+├── .puppeteerrc.cjs     # Bundles Chromium into the app for packaging
+└── src/
+    ├── getGift.js       # Gift automation (exports runGift, also runs as CLI)
+    ├── testAuth.js      # Login tester (exports testAuth, also runs as CLI)
+    └── utils.js         # Shared helpers: paths, OS-aware launch options, config
+```
+
+## 📦 Building Installers (Windows / macOS / Linux)
+
+The app runs Puppeteer **inside** the Electron process, so packaged builds do
+**not** require Node.js or a system Chrome on the end user's machine — Chromium
+is bundled automatically.
+
+```bash
+npm install          # also downloads Chromium into .puppeteer-cache
+npm run build        # build for the current OS
+npm run build:win    # Windows installer (.exe / NSIS)
+npm run build:mac    # macOS disk image (.dmg)
+npm run build:linux  # Linux AppImage
+```
+
+Output appears in `dist/`. Cross-OS builds are most reliable when run on (or in
+CI on) each target operating system.
+
+> **Note:** When run as a packaged app, `config.json` and the log files live in
+> the per-user app-data directory (writable on every OS), not next to the
+> executable. When run from source, they stay in the project root.
 
 ## 📄 License
 

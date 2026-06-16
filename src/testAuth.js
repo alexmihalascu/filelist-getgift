@@ -1,111 +1,138 @@
+'use strict';
+
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const {
+  loadUsers,
+  getLaunchOptions,
+  ensureBrowser,
+  USER_AGENT,
+  CONFIG_PATH,
+  RESULTS_LOG_PATH,
+} = require('./utils');
 
-// Load config file
-const configPath = path.join(__dirname, './config.json');
-const users = require(configPath);
+/**
+ * Test login for a single account.
+ *
+ * @param {{username: string, password: string}} user
+ * @param {(line: string) => void} log
+ * @returns {Promise<{ success: boolean, message: string }>}
+ */
+async function testOne(user, log) {
+  let browser;
+  try {
+    log(`Testing user: ${user.username}...`);
 
-(async () => {
-  console.log('=== FileLIst Login Authentication Test ===');
-  console.log(`Testing ${users.length} account(s)\n`);
+    browser = await puppeteer.launch(getLaunchOptions());
+    const page = await browser.newPage();
+    await page.setUserAgent(USER_AGENT);
 
-  for (const user of users) {
-    let browser;
-    try {
-      console.log(`Testing user: ${user.username}...`);
+    await page.goto('https://filelist.io/login.php', {
+      waitUntil: 'networkidle2',
+      timeout: 30000,
+    });
 
-      // Launch browser with minimal options
-      browser = await puppeteer.launch({
-        headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      });
+    await page.type('#username', user.username);
+    await page.type('#password', user.password);
 
-      const page = await browser.newPage();
-      await page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    await Promise.all([
+      page.click('.btn'),
+      page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
+    ]);
+
+    // Logged in only if a logout link exists AND we left takelogin.php.
+    const isLoggedIn =
+      !page.url().includes('takelogin.php') &&
+      (await page.evaluate(() => document.querySelector('a[href^="/logout.php?id="]') !== null));
+
+    if (isLoggedIn) {
+      log(`✅ Autentificare reușită: ${user.username}`);
+      fs.appendFileSync(
+        RESULTS_LOG_PATH,
+        `${new Date().toISOString()} - ${user.username} - LOGIN SUCCESSFUL\n`,
       );
 
-      // Navigate to login page
-      await page.goto('https://filelist.io/login.php', {
-        waitUntil: 'networkidle2',
-        timeout: 30000,
-      });
-
-      // Fill and submit login form
-      await page.type('#username', user.username);
-      await page.type('#password', user.password);
-
-      // Submit login form
-      await Promise.all([
-        page.click('.btn'),
-        page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
-      ]);
-
-      // Check for login success by looking for specific elements
-      const isLoggedIn = await page.evaluate(() => {
-        // Check for footer element
-        const footerExists = document.querySelector('#footer') !== null;
-
-        // Check for logout link in the statusbar
-        const logoutLinkExists =
-          document.querySelector(
-            '#wrapper > div.mainheader > div > div.statusbar > div:nth-child(2) > div:nth-child(1) > a:nth-child(4)'
-          ) !== null;
-
-        return footerExists || logoutLinkExists;
-      });
-
-      if (isLoggedIn) {
-        console.log(`✅ SUCCESS: ${user.username} - Login successful`);
-
-        // Log to file
-        const resultLog = `${new Date().toISOString()} - ${user.username} - LOGIN SUCCESSFUL\n`;
-        fs.appendFileSync('login_test_results.txt', resultLog);
-
-        // Perform logout
-        try {
-          const logoutSelector =
-            '#wrapper > div.mainheader > div > div.statusbar > div:nth-child(2) > div:nth-child(1) > a:nth-child(4)';
-          await Promise.all([
-            page.click(logoutSelector),
-            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 10000 }),
-          ]);
-        } catch (logoutError) {
-          console.log(`Note: Logout process failed but login test was successful`);
-        }
-      } else {
-        const errorMessage = await page.evaluate(() => {
-          const errorDiv = document.querySelector(
-            'div[style*="font-size: 14px;color: #fff;font-weight:bold;"]'
-          );
-          return errorDiv ? errorDiv.innerText : 'Unknown login error';
-        });
-
-        console.log(`❌ FAILED: ${user.username} - Login failed: ${errorMessage}`);
-
-        // Log to file
-        const resultLog = `${new Date().toISOString()} - ${
-          user.username
-        } - LOGIN FAILED: ${errorMessage}\n`;
-        fs.appendFileSync('login_test_results.txt', resultLog);
+      // Best-effort logout so the session does not linger.
+      try {
+        await Promise.all([
+          page.click('a[href^="/logout.php?id="]'),
+          page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 10000 }),
+        ]);
+      } catch {
+        log('Note: Logout failed but login test was successful');
       }
-    } catch (error) {
-      console.error(`❌ ERROR: ${user.username} - ${error.message}`);
 
-      // Log to file
-      const resultLog = `${new Date().toISOString()} - ${user.username} - ERROR: ${
-        error.message
-      }\n`;
-      fs.appendFileSync('login_test_results.txt', resultLog);
-    } finally {
-      if (browser) {
-        await browser.close();
-      }
+      return { success: true, message: `Autentificare reușită pentru ${user.username}` };
     }
 
-    console.log(''); // Empty line for better readability
+    const errorMessage = await page.evaluate(() => {
+      const errorDiv = document.querySelector(
+        'div[style*="font-size: 14px;color: #fff;font-weight:bold;"]',
+      );
+      return errorDiv ? errorDiv.innerText : 'Unknown login error';
+    });
+
+    log(`❌ Autentificare eșuată: ${user.username} - ${errorMessage}`);
+    fs.appendFileSync(
+      RESULTS_LOG_PATH,
+      `${new Date().toISOString()} - ${user.username} - LOGIN FAILED: ${errorMessage}\n`,
+    );
+    return { success: false, message: `Autentificare eșuată: ${errorMessage}` };
+  } catch (error) {
+    log(`❌ Autentificare eșuată: ${user.username} - ${error.message}`);
+    fs.appendFileSync(
+      RESULTS_LOG_PATH,
+      `${new Date().toISOString()} - ${user.username} - ERROR: ${error.message}\n`,
+    );
+    return { success: false, message: `Autentificare eșuată: ${error.message}` };
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
+}
+
+/**
+ * Test authentication for one user or for every user in a config file.
+ *
+ * @param {object} [options]
+ * @param {{username: string, password: string}} [options.user] - single user to test
+ * @param {string} [options.configPath] - config file to read when no user is given
+ * @param {(line: string) => void} [options.logger]
+ * @returns {Promise<{ success: boolean, message: string }>} result of the last/only user
+ */
+async function testAuth({ user, configPath = CONFIG_PATH, logger = console.log } = {}) {
+  const log = line => logger(String(line));
+
+  const users = user ? [user] : loadUsers(configPath);
+  await ensureBrowser(log); // download Chromium on first run if needed
+
+  log('=== FileList Login Authentication Test ===');
+  log(`Testing ${users.length} account(s)`);
+
+  let last = { success: false, message: 'No accounts tested.' };
+  for (const u of users) {
+    last = await testOne(u, log);
+    log('');
   }
 
-  console.log('=== Login Test Complete ===');
-})();
+  log('=== Login Test Complete ===');
+  return last;
+}
+
+module.exports = { testAuth };
+
+// CLI entry point: `node src/testAuth.js [configPath]`
+if (require.main === module) {
+  const configArg = process.argv[2];
+  const configPath = configArg ? path.resolve(configArg) : CONFIG_PATH;
+  testAuth({ configPath })
+    .then(result => {
+      process.exitCode = result.success ? 0 : 1;
+    })
+    .catch(error => {
+      console.error(`Configuration error: ${error.message}`);
+      process.exitCode = 1;
+    });
+}

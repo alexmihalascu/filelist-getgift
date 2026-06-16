@@ -1,11 +1,19 @@
 {
   "name": "filelist-getgift",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Filelist Gift Automation with GUI",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "postinstall": "node -e \"require('child_process').execSync('npx puppeteer browsers install chrome', {stdio:'inherit'})\"",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "gift": "node src/getGift.js",
+    "test:auth": "node src/testAuth.js",
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "repository": {
     "type": "git",
@@ -14,16 +22,22 @@
   "keywords": [
     "filelist",
     "automation",
-    "puppeteer"
+    "puppeteer",
+    "electron"
   ],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "puppeteer": "^21.0.0"
+    "puppeteer": "^25.1.0"
   },
   "devDependencies": {
-    "electron": "^28.3.3",
-    "electron-builder": "^24.13.3"
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3",
+    "eslint": "^9.18.0",
+    "prettier": "^3.4.2"
   },
   "build": {
     "appId": "com.filelist.getgift",
@@ -37,19 +51,22 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "app-icon.icns"
+      "icon": "app-icon.icns",
+      "category": "public.app-category.utilities"
     },
     "linux": {
       "target": "AppImage",
-      "icon": "app-icon.png"
+      "icon": "app-icon.png",
+      "category": "Utility"
     },
     "files": [
       "main.js",
       "preload.js",
       "index.html",
-      "getGift.js",
-      "node_modules/**/*",
-      "package.json"
+      "src/**/*",
+      "package.json",
+      "!**/*.{md,map,ts}",
+      "!**/{test,tests,__tests__,example,examples,.github,.bin}/**"
     ]
   }
 }
